@@ -1,0 +1,39 @@
+{
+  "name": "bpmn-mcp-server",
+  "version": "1.0.0",
+  "description": "Production-Grade BPMN 2.0 MCP Server for Bizagi Modeler, Camunda, and Process Engines",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "bpmn-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "mcp",
+    "bpmn",
+    "bpmn20",
+    "bizagi",
+    "camunda",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.0",
+    "bpmn-auto-layout": "^1.3.0",
+    "bpmn-moddle": "^10.3.1",
+    "fast-xml-parser": "^4.5.3",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.7"
+  }
+}

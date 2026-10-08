@@ -1,0 +1,27 @@
+@startuml
+title Proceso de Gestion de Incidentes de TI
+
+|Solicitante|
+start
+:Reportar Incidencia;
+
+|N1 (Mesa de Ayuda)|
+:Registrar y Clasificar Ticket;
+fork
+  :Diagnostico Inicial N1;
+fork again
+  |SLA Motor|
+  :Iniciar Temporizador SLA; <<service>>
+end fork
+
+|N1 (Mesa de Ayuda)|
+if (¿Resuelto en N1?) then (Si)
+else (No)
+  |N2/N3 (Especialistas)|
+  :Resolver Incidente Complejo;
+endif
+
+|Solicitante|
+:Confirmar Solucion del Servicio;
+stop
+@enduml

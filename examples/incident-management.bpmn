@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="BPMN_Definitions" name="Proceso de Gestión de Incidentes de TI" targetNamespace="http://bpmn.io/schema/bpmn" exporter="BPMN 2.0 MCP Server for Bizagi Modeler" exporterVersion="1.0.0">
+  <bpmn:collaboration id="BPMN_Collaboration">
+    <bpmn:participant id="Pool_Incidentes" name="Mesa de Servicio y Soporte TI" processRef="Process_Pool_Incidentes" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Pool_Incidentes" name="Mesa de Servicio y Soporte TI" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Pool_Incidentes">
+      <bpmn:lane id="Lane_Solicitante" name="Solicitante">
+        <bpmn:flowNodeRef>Start_Incidencia</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_ConfirmarSolucion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_AceptaSolucion</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>End_IncidenciaCerrada</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_N1" name="N1 (Mesa de Ayuda)">
+        <bpmn:flowNodeRef>Task_Registrar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fork_Paralelo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Task_DiagnosticoN1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Join_Paralelo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_ResueltoN1</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_SLAMotor" name="SLA Motor">
+        <bpmn:flowNodeRef>Task_TimerSLA</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_N2N3" name="N2/N3 (Especialistas)">
+        <bpmn:flowNodeRef>Task_EspecialistaN2N3</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Start_Incidencia" name="Reportar Incidencia">
+      <bpmn:documentation>El usuario registra una incidencia o falla en el portal de autoservicio.</bpmn:documentation>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="Task_Registrar" name="Registrar y Clasificar Ticket">
+      <bpmn:documentation>Agente N1 valida prioridad, impacto y categoría del servicio.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:incoming>Flow_13</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:parallelGateway id="Fork_Paralelo" name="Split Paralelo">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:userTask id="Task_DiagnosticoN1" name="Diagnóstico Inicial N1">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_TimerSLA" name="Iniciar Temporizador SLA">
+      <bpmn:documentation>Servicio automático que activa conteo regresivo de SLA según prioridad.</bpmn:documentation>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="Join_Paralelo" name="Sincronizar Diagnóstico y SLA">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gateway_ResueltoN1" name="¿Resuelto en N1?">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_EspecialistaN2N3" name="Resolver Incidente Complejo">
+      <bpmn:documentation>Ingeniero especialista analiza logs y aplica corrección técnica.</bpmn:documentation>
+      <bpmn:incoming>Flow_9</bpmn:incoming>
+      <bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Task_ConfirmarSolucion" name="Confirmar Solución del Servicio">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+      <bpmn:outgoing>Flow_11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_AceptaSolucion" name="¿Conforme con Solución?">
+      <bpmn:incoming>Flow_11</bpmn:incoming>
+      <bpmn:outgoing>Flow_12</bpmn:outgoing>
+      <bpmn:outgoing>Flow_13</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="End_IncidenciaCerrada" name="Incidencia Cerrada con Éxito">
+      <bpmn:incoming>Flow_12</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" name="" sourceRef="Start_Incidencia" targetRef="Task_Registrar" />
+    <bpmn:sequenceFlow id="Flow_2" name="" sourceRef="Task_Registrar" targetRef="Fork_Paralelo" />
+    <bpmn:sequenceFlow id="Flow_3" name="Atención Técnica" sourceRef="Fork_Paralelo" targetRef="Task_DiagnosticoN1" />
+    <bpmn:sequenceFlow id="Flow_4" name="Control Tiempo" sourceRef="Fork_Paralelo" targetRef="Task_TimerSLA" />
+    <bpmn:sequenceFlow id="Flow_5" name="" sourceRef="Task_DiagnosticoN1" targetRef="Join_Paralelo" />
+    <bpmn:sequenceFlow id="Flow_6" name="" sourceRef="Task_TimerSLA" targetRef="Join_Paralelo" />
+    <bpmn:sequenceFlow id="Flow_7" name="" sourceRef="Join_Paralelo" targetRef="Gateway_ResueltoN1" />
+    <bpmn:sequenceFlow id="Flow_8" name="Sí" sourceRef="Gateway_ResueltoN1" targetRef="Task_ConfirmarSolucion" />
+    <bpmn:sequenceFlow id="Flow_9" name="No (Escalar)" sourceRef="Gateway_ResueltoN1" targetRef="Task_EspecialistaN2N3" />
+    <bpmn:sequenceFlow id="Flow_10" name="Solución Especialista" sourceRef="Task_EspecialistaN2N3" targetRef="Task_ConfirmarSolucion" />
+    <bpmn:sequenceFlow id="Flow_11" name="" sourceRef="Task_ConfirmarSolucion" targetRef="Gateway_AceptaSolucion" />
+    <bpmn:sequenceFlow id="Flow_12" name="Conforme" sourceRef="Gateway_AceptaSolucion" targetRef="End_IncidenciaCerrada" />
+    <bpmn:sequenceFlow id="Flow_13" name="Rechazado (Reabrir)" sourceRef="Gateway_AceptaSolucion" targetRef="Task_Registrar" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMN_Diagram">
+    <bpmndi:BPMNPlane id="BPMN_Plane" bpmnElement="BPMN_Collaboration">
+      <bpmndi:BPMNShape id="Pool_Incidentes_di" bpmnElement="Pool_Incidentes" isHorizontal="true">
+        <dc:Bounds x="120" y="80" width="1850" height="560" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Solicitante_di" bpmnElement="Lane_Solicitante" isHorizontal="true">
+        <dc:Bounds x="150" y="80" width="1820" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_N1_di" bpmnElement="Lane_N1" isHorizontal="true">
+        <dc:Bounds x="150" y="220" width="1820" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_SLAMotor_di" bpmnElement="Lane_SLAMotor" isHorizontal="true">
+        <dc:Bounds x="150" y="360" width="1820" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_N2N3_di" bpmnElement="Lane_N2N3" isHorizontal="true">
+        <dc:Bounds x="150" y="500" width="1820" height="140" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Start_Incidencia_di" bpmnElement="Start_Incidencia">
+        <dc:Bounds x="237" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Registrar_di" bpmnElement="Task_Registrar">
+        <dc:Bounds x="375" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_Paralelo_di" bpmnElement="Fork_Paralelo">
+        <dc:Bounds x="570" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_DiagnosticoN1_di" bpmnElement="Task_DiagnosticoN1">
+        <dc:Bounds x="715" y="250" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_TimerSLA_di" bpmnElement="Task_TimerSLA">
+        <dc:Bounds x="715" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_Paralelo_di" bpmnElement="Join_Paralelo">
+        <dc:Bounds x="910" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_ResueltoN1_di" bpmnElement="Gateway_ResueltoN1">
+        <dc:Bounds x="1080" y="265" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_EspecialistaN2N3_di" bpmnElement="Task_EspecialistaN2N3">
+        <dc:Bounds x="1225" y="530" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ConfirmarSolucion_di" bpmnElement="Task_ConfirmarSolucion">
+        <dc:Bounds x="1395" y="110" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_AceptaSolucion_di" bpmnElement="Gateway_AceptaSolucion">
+        <dc:Bounds x="1590" y="125" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_IncidenciaCerrada_di" bpmnElement="End_IncidenciaCerrada">
+        <dc:Bounds x="1767" y="132" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="273" y="150" />
+        <di:waypoint x="324" y="150" />
+        <di:waypoint x="324" y="290" />
+        <di:waypoint x="375" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="475" y="290" />
+        <di:waypoint x="570" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="620" y="290" />
+        <di:waypoint x="715" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="620" y="290" />
+        <di:waypoint x="668" y="290" />
+        <di:waypoint x="668" y="430" />
+        <di:waypoint x="715" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="815" y="290" />
+        <di:waypoint x="910" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="815" y="430" />
+        <di:waypoint x="863" y="430" />
+        <di:waypoint x="863" y="290" />
+        <di:waypoint x="910" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="960" y="290" />
+        <di:waypoint x="1080" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1130" y="290" />
+        <di:waypoint x="1263" y="290" />
+        <di:waypoint x="1263" y="150" />
+        <di:waypoint x="1395" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9">
+        <di:waypoint x="1130" y="290" />
+        <di:waypoint x="1178" y="290" />
+        <di:waypoint x="1178" y="570" />
+        <di:waypoint x="1225" y="570" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10">
+        <di:waypoint x="1325" y="570" />
+        <di:waypoint x="1360" y="570" />
+        <di:waypoint x="1360" y="150" />
+        <di:waypoint x="1395" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11_di" bpmnElement="Flow_11">
+        <di:waypoint x="1495" y="150" />
+        <di:waypoint x="1590" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12_di" bpmnElement="Flow_12">
+        <di:waypoint x="1640" y="150" />
+        <di:waypoint x="1767" y="150" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13_di" bpmnElement="Flow_13">
+        <di:waypoint x="1615" y="125" />
+        <di:waypoint x="1615" y="100" />
+        <di:waypoint x="340" y="100" />
+        <di:waypoint x="340" y="290" />
+        <di:waypoint x="375" y="290" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
